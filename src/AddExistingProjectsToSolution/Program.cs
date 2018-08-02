@@ -18,9 +18,9 @@ namespace AddExistingProjectsToSolution
             ConsoleOutputWorker.OutputSolutionFilePath();
             string solutionFilePath = Console.ReadLine();
             ConsoleOutputWorker.OutputProjectPath();
-            string[] projectDirectories = Console.ReadLine().Split(',');
+            List<string> projectDirectories = Console.ReadLine().Split(',').ToList();
 
-            if (string.IsNullOrEmpty(solutionFilePath) || projectDirectories.Count() == 0)
+            if (string.IsNullOrEmpty(solutionFilePath) || projectDirectories.Count == 0)
             {
                 ConsoleOutputWorker.OutputPathsEmptyStatements();
                 if (Console.ReadLine().ToLower() == "c")
@@ -29,14 +29,15 @@ namespace AddExistingProjectsToSolution
                 }
                 else
                     Environment.Exit(0);
-            }
+            }           
 
-            using (var writer = new StreamWriter(solutionFilePath, true, Encoding.UTF8))
+            bool isAppend = false;
+            ConsoleOutputWorker.OutputIsAppendStatements();
+            isAppend = Console.ReadLine().ToLower() == "a" ? true : false;
+            AddCurrentSolutionDirectory(projectDirectories, solutionFilePath);
+
+            using (var writer = new StreamWriter(solutionFilePath, isAppend, Encoding.UTF8))
             {
-                ConsoleOutputWorker.OutputVisualStudioVersionSelection();
-                int visualStudioVersion = Convert.ToInt32(Console.ReadLine());
-                VisualStudioVersionWorker.WriteVisualStudioVersionInformation(visualStudioVersion, writer);
-
                 var seenElements = new HashSet<string>();
                 foreach (var directoryPath in projectDirectories.Distinct())
                 {
@@ -50,6 +51,7 @@ namespace AddExistingProjectsToSolution
                         if (seenElements.Add(fileName))
                         {
                             var guid = ReadGuid(file.FullName);
+                            ConsoleOutputWorker.OutputStatement($"Adding project {fileName} to the solution file");
                             writer.WriteLine(string.Format(@"Project(""0"") = ""{0}"", ""{1}"",""{2}""", fileName, file.FullName, guid));
                             writer.WriteLine("EndProject");
                         }
@@ -65,6 +67,27 @@ namespace AddExistingProjectsToSolution
                 var elements = XElement.Load(XmlReader.Create(file));
                 return Guid.Parse(elements.Descendants().First(element => element.Name.LocalName == "ProjectGuid").Value);
             }
+        }
+
+        static void AddCurrentSolutionDirectory(List<string> projectDirectories, string fullDirectoryPath)
+        {
+            string currentSolutionDirectory = GetCurrentSolutionDirectory(fullDirectoryPath, "\\") == string.Empty ? GetCurrentSolutionDirectory(fullDirectoryPath, "/") : GetCurrentSolutionDirectory(fullDirectoryPath, "\\");
+            if (!string.IsNullOrEmpty(currentSolutionDirectory) && !projectDirectories.Contains(currentSolutionDirectory))
+                projectDirectories.Add(currentSolutionDirectory);
+        }
+
+        static string GetCurrentSolutionDirectory(string fullDirectoryPath, string character = "//")
+        {
+            if (!string.IsNullOrWhiteSpace(fullDirectoryPath))
+            {
+                int charLocation = fullDirectoryPath.LastIndexOf(character, StringComparison.Ordinal);
+
+                if (charLocation > 0)
+                {
+                    return fullDirectoryPath.Substring(0, charLocation);
+                }
+            }
+            return string.Empty;
         }
     }
 }

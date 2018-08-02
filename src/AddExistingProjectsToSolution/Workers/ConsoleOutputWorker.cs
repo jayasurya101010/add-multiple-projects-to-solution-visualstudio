@@ -54,6 +54,15 @@ namespace AddExistingProjectsToSolution.Workers
             Console.ResetColor();
         }
 
+        public static void OutputIsAppendStatements()
+        {
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Press 'A' if you wish to append projects to existing projects or press 'O' to overrite.");
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("(Append adds to existing projects. Overrite will remove all existing projects and adds new ones.)");
+            Console.ResetColor();
+        }
+
         public static void OutputCompletedStatements(string solutionFilePath)
         {
             Console.WriteLine($"Created solution file at {solutionFilePath}");
@@ -71,7 +80,9 @@ namespace AddExistingProjectsToSolution.Workers
 
         public static void OutputStatement(string message)
         {
+            Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine(message);
+            Console.ResetColor();
         }
     }
 }
