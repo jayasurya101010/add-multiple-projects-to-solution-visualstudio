@@ -35,7 +35,9 @@ namespace AddExistingProjectsToSolution
             ConsoleOutputWorker.OutputIsAppendStatements();
             isAppend = Console.ReadLine().ToLower() == "a" ? true : false;
             AddCurrentSolutionDirectory(projectDirectories, solutionFilePath);
-            Console.WriteLine("Microsoft Visual Studio Solution File, Format Version 12.00");
+
+            if(!isAppend)
+                Console.WriteLine("Microsoft Visual Studio Solution File, Format Version 12.00");
 
             using (var writer = new StreamWriter(solutionFilePath, isAppend, Encoding.UTF8))
             {
