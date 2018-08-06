@@ -9,8 +9,21 @@ namespace AddExistingProjectsToSolution.Workers
 {
     public class VisualStudioVersionWorker
     {
+
         /// <summary>
-        /// Writes the visual studio version specifc information to the solution file
+        /// Writes mandatory visual studio version information to solution file
+        /// </summary>
+        /// <param name="isAppend"></param>
+        /// <param name="solutionFilePath"></param>
+        /// <param name="streamWriter"></param>
+        public static void WriteVisualStudioVersionInformation(bool isAppend, string solutionFilePath, StreamWriter streamWriter)
+        {
+            if ((!isAppend && File.Exists(solutionFilePath)) || (isAppend && !File.Exists(solutionFilePath)))
+                streamWriter.WriteLine("Microsoft Visual Studio Solution File, Format Version 12.00");
+        }
+
+        /// <summary>
+        /// TODO : Writes the visual studio version specifc information to the solution file
         /// </summary>
         /// <param name="version"></param>
         /// <param name="writer"></param>

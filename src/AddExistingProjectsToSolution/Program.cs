@@ -8,89 +8,36 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using AddExistingProjectsToSolution.Workers;
+using AddExistingProjectsToSolution.Extensions;
+using AddExistingProjectsToSolution.Helpers;
 
 namespace AddExistingProjectsToSolution
 {
     class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             ConsoleOutputWorker.OutputSolutionFilePath();
             string solutionFilePath = Console.ReadLine();
+
             ConsoleOutputWorker.OutputProjectPath();
             List<string> projectDirectories = Console.ReadLine().Split(',').ToList();
 
-            if (string.IsNullOrEmpty(solutionFilePath) || projectDirectories.Count == 0)
-            {
-                ConsoleOutputWorker.OutputPathsEmptyStatements();
-                if (Console.ReadLine().ToLower() == "c")
-                {
-                    Main(args);
-                }
-                else
-                    Environment.Exit(0);
-            }           
+            /* Check if entered paths are empty. */
+            ValidationHelper.ValidateEmptyInputs(solutionFilePath, projectDirectories, args);            
 
-            bool isAppend = false;
-            ConsoleOutputWorker.OutputIsAppendStatements();
-            isAppend = Console.ReadLine().ToLower() == "a" ? true : false;
-            AddCurrentSolutionDirectory(projectDirectories, solutionFilePath);
+            /* Check whether to append the projects to existing solution file or to create a new solution file. */
+            bool isAppend = FileHelper.CheckIfAppend();
 
-            if(!isAppend)
-                Console.WriteLine("Microsoft Visual Studio Solution File, Format Version 12.00");
+            /* Check if entered solution file path is valid. If not valid, create the solution path in "temp" folder */
+            if (!ValidationHelper.ValidateProperFilePath(solutionFilePath))
+                solutionFilePath = FileHelper.GetTempSolutionPath();
 
-            using (var writer = new StreamWriter(solutionFilePath, isAppend, Encoding.UTF8))
-            {
-                var seenElements = new HashSet<string>();
-                foreach (var directoryPath in projectDirectories.Distinct())
-                {
-                    ConsoleOutputWorker.OutputStatement($"Going through directory - {directoryPath}");
-                    
-                    DirectoryInfo dirInfo = (new DirectoryInfo(directoryPath));
-                    FileInfo[] fileInfo = dirInfo.GetFiles("*.csproj", SearchOption.AllDirectories);
-                    foreach (var file in fileInfo)
-                    {
-                        string fileName = Path.GetFileNameWithoutExtension(file.Name);
-                        if (seenElements.Add(fileName))
-                        {
-                            var guid = ReadGuid(file.FullName);
-                            ConsoleOutputWorker.OutputStatement($"Adding project {fileName} to the solution file");
-                            writer.WriteLine(string.Format(@"Project(""0"") = ""{0}"", ""{1}"",""{2}""", fileName, file.FullName, guid));
-                            writer.WriteLine("EndProject");
-                        }
-                    }
-                }
-            }
-            ConsoleOutputWorker.OutputCompletedStatements(solutionFilePath);
-        }
-        static Guid ReadGuid(string fileName)
-        {
-            using (var file = File.OpenRead(fileName))
-            {
-                var elements = XElement.Load(XmlReader.Create(file));
-                return Guid.Parse(elements.Descendants().First(element => element.Name.LocalName == "ProjectGuid").Value);
-            }
-        }
+            /* Include any projects inside solution's own directory. */
+            DirectoryHelper.AddCurrentSolutionDirectory(projectDirectories, solutionFilePath);
 
-        static void AddCurrentSolutionDirectory(List<string> projectDirectories, string fullDirectoryPath)
-        {
-            string currentSolutionDirectory = GetCurrentSolutionDirectory(fullDirectoryPath, "\\") == string.Empty ? GetCurrentSolutionDirectory(fullDirectoryPath, "/") : GetCurrentSolutionDirectory(fullDirectoryPath, "\\");
-            if (!string.IsNullOrEmpty(currentSolutionDirectory) && !projectDirectories.Contains(currentSolutionDirectory))
-                projectDirectories.Add(currentSolutionDirectory);
-        }
-
-        static string GetCurrentSolutionDirectory(string fullDirectoryPath, string character = "//")
-        {
-            if (!string.IsNullOrWhiteSpace(fullDirectoryPath))
-            {
-                int charLocation = fullDirectoryPath.LastIndexOf(character, StringComparison.Ordinal);
-
-                if (charLocation > 0)
-                {
-                    return fullDirectoryPath.Substring(0, charLocation);
-                }
-            }
-            return string.Empty;
+            /* Create solution file with all the projects at the specified location */
+            FileWorker.CreateSolutionFile(solutionFilePath, projectDirectories, isAppend);
         }
     }
 }

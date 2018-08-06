@@ -51,6 +51,16 @@ namespace AddExistingProjectsToSolution.Workers
             Console.WriteLine("Example - C:\\CoreLibraries\\, C:\\DataLibraries");
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("Project folder/folders Path - ");
+            Console.WriteLine();
+            Console.ResetColor();
+        }
+
+        public static void OutputInvalidProjectsFolderPath(string path)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("Provided projects folder path is not valid.");
+            OutputContinueOrExitStatements();
+            Console.WriteLine();
             Console.ResetColor();
         }
 
@@ -60,6 +70,7 @@ namespace AddExistingProjectsToSolution.Workers
             Console.WriteLine("Press 'A' if you wish to append projects to existing projects or press 'O' to overrite.");
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine("(Append adds to existing projects. Overrite will remove all existing projects and adds new ones.)");
+            Console.WriteLine();
             Console.ResetColor();
         }
 
@@ -67,6 +78,7 @@ namespace AddExistingProjectsToSolution.Workers
         {
             Console.WriteLine($"Created solution file at {solutionFilePath}");
             Console.WriteLine("Press any key to exit");
+            Console.WriteLine();
             Console.ReadLine();
         }
 
@@ -74,14 +86,29 @@ namespace AddExistingProjectsToSolution.Workers
         {
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine("Solution file path and project directories cannot be empty.");
-            Console.WriteLine("Press C to continue and re-enter the paths. Press any other key to exit.");
+            OutputContinueOrExitStatements();
+            Console.WriteLine();
             Console.ResetColor();
+        }
+
+        public static void OutputNoProjectsStatements(string directoryPath)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("No projects found at the specified location.");
+            Console.WriteLine();
+            Console.ResetColor();
+        }
+
+        private static void OutputContinueOrExitStatements()
+        {
+            Console.WriteLine("Press C to continue and re-enter the paths. Press any other key to exit.");
         }
 
         public static void OutputStatement(string message)
         {
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine(message);
+            Console.WriteLine();
             Console.ResetColor();
         }
     }
