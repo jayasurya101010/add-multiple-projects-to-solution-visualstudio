@@ -24,7 +24,7 @@ namespace AddExistingProjectsToSolution
             List<string> projectDirectories = Console.ReadLine().Split(',').ToList();
 
             /* Check if entered paths are empty. */
-            ValidationHelper.ValidateEmptyInputs(solutionFilePath, projectDirectories, args);            
+            ValidationHelper.ValidateEmptyInputs(solutionFilePath, projectDirectories, args);
 
             /* Check whether to append the projects to existing solution file or to create a new solution file. */
             bool isAppend = FileHelper.CheckIfAppend();
